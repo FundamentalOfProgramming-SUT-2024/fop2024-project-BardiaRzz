@@ -1,0 +1,97 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>  // for sleep() function
+#include <ncurses.h>
+// Game map dimensions
+#define WIDTH 20
+#define HEIGHT 10 //sudo apt install libncurses5-dev libncursesw5-dev
+
+// Player position
+int player_x = 1, player_y = 1;
+
+// Game map
+char game_map[HEIGHT][WIDTH];
+
+// Function to initialize the game map
+void init_map() {
+    for (int i = 0; i < HEIGHT; i++) {
+        for (int j = 0; j < WIDTH; j++) {
+            if (i == 0 || i == HEIGHT - 1 || j == 0 || j == WIDTH - 1)
+                game_map[i][j] = '#';  // Walls
+            else
+                game_map[i][j] = '.';  // Floor
+        }
+    }
+
+    game_map[player_y][player_x] = '@';  // Player character
+}
+
+// Function to display the game map
+void display_map() {
+    clear();  // Clear the screen
+    for (int i = 0; i < HEIGHT; i++) {
+        for (int j = 0; j < WIDTH; j++) {
+            mvprintw(i, j, "%c", game_map[i][j]);  // Print each cell
+        }
+    }
+    refresh();  // Refresh the screen to show the updates
+}
+
+// Function to move the player
+void move_player(int dx, int dy) {
+    // Calculate new position
+    int new_x = player_x + dx;
+    int new_y = player_y + dy;
+
+    // Ensure the player doesn't move out of bounds
+    if (new_x > 0 && new_x < WIDTH - 1 && new_y > 0 && new_y < HEIGHT - 1) {
+        game_map[player_y][player_x] = '.';  // Clear old position
+        player_x = new_x;
+        player_y = new_y;
+        game_map[player_y][player_x] = '@';  // Set new position
+    }
+}
+
+int main() {
+    // Initialize ncurses mode
+    initscr();
+    noecho();
+    curs_set(FALSE);
+
+    // Initialize the game map
+    init_map();
+
+    // Display the game map
+    display_map();
+
+    // Game loop
+    while (1) {
+        int ch = getch();  // Get user input
+
+        switch (ch) {
+            case 'w':  // Move up
+                move_player(0, -1);
+                break;
+            case 's':  // Move down
+                move_player(0, 1);
+                break;
+            case 'a':  // Move left
+                move_player(-1, 0);
+                break;
+            case 'd':  // Move right
+                move_player(1, 0);
+                break;
+            case 'q':  // Quit the game
+                endwin();
+                return 0;
+        }
+
+        // Update the screen
+        display_map();
+        sleep(1);  // Slow down the loop to make it playable
+    }
+
+    endwin();  // Close ncurses mode
+    return 0;
+}
+
